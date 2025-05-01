@@ -8,22 +8,18 @@ def lambda_handler(event, context):
     bucket = event.get("bucket")
     
     if action == "merge":
-        s3_input_keys = event["input_files"]  # list of input PDF files
-        s3_output_key = event["output_file"]  # output PDF file
+        s3_input_keys = event["input_files"]
+        s3_output_key = event["output_file"]
 
-        # Download files from S3
         local_files = download_files_from_s3(bucket, s3_input_keys)
-        
-        # Define the output path
         output_path = f"/tmp/{s3_output_key}"
-        
-        # Merge PDFs using the tool
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)  # Ensure dir exists
+
         merge_pdfs(local_files, output_path)
-        
-        # Upload the merged file back to S3
         upload_file_to_s3(bucket, output_path, s3_output_key)
 
         return {"status": "success", "output_file": s3_output_key}
+
 
     elif action == "split":
         s3_input_key = event["input_file"]
